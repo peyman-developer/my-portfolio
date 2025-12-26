@@ -1,6 +1,13 @@
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('Service Worker registered', reg))
+        .catch(err => console.log('Service Worker not registered', err));
+}
+
 // Smooth scroll for nav links
 document.querySelectorAll('.nav-links a').forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
+    anchor.addEventListener('click', function (e) {
         e.preventDefault();
         const targetId = this.getAttribute('href');
         document.querySelector(targetId).scrollIntoView({
@@ -14,13 +21,13 @@ const contactForm = document.getElementById('contact-form');
 const formMsg = document.getElementById('form-msg');
 
 if (contactForm) {
-    contactForm.addEventListener('submit', function(e) {
+    contactForm.addEventListener('submit', function (e) {
         e.preventDefault();
-        
+
         // Simulating sending
         formMsg.innerHTML = 'در حال ارسال پیام...';
         formMsg.style.color = 'var(--primary-color)';
-        
+
         setTimeout(() => {
             formMsg.innerHTML = 'پیام شما با موفقیت ارسال شد. به زودی با شما تماس می‌گیرم.';
             contactForm.reset();
