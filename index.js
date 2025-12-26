@@ -22,12 +22,13 @@ async function loadServices() {
                     : 'assets/logo.png'; // Fallback
 
                 const serviceHtml = `
-                    <div class="card glass">
+                    <div class="card glass" onclick="openServiceDetail('${service.id}')">
                         <div class="card-img">
                             <img src="${imgUrl}" alt="${service.title}">
                         </div>
                         <h3>${service.title}</h3>
                         <p>${service.description}</p>
+                        <span class="btn-more" style="display:block; margin-top:15px; color:var(--primary-color); font-size:0.8rem; cursor:pointer;">مشاهده قدرت <i class="fas fa-magic"></i></span>
                     </div>
                 `;
                 servicesContainer.insertAdjacentHTML('beforeend', serviceHtml);
@@ -38,6 +39,44 @@ async function loadServices() {
     } catch (error) {
         console.log('Error loading services:', error);
     }
+}
+
+// Modal Logic
+const modal = document.getElementById('service-modal');
+const modalBody = document.getElementById('modal-body');
+const closeBtn = document.querySelector('.close-modal');
+
+async function openServiceDetail(serviceId) {
+    modalBody.innerHTML = '<div style="text-align:center; padding:50px;">در حال بارگذاری دنیای هوشمند...</div>';
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden'; // Stop scroll
+
+    try {
+        const response = await fetch(`${POCKETBASE_URL}/api/collections/services/records/${serviceId}`);
+        const service = await response.json();
+
+        modalBody.innerHTML = `
+            <h2>${service.title}</h2>
+            <div class="modal-visual-content">
+                ${service.content || `<p style="text-align:center; color:var(--text-dim);">${service.description}</p>`}
+            </div>
+            <div style="margin-top:30px; text-align:center;">
+                <a href="#contact" onclick="closeModal()" class="btn btn-primary">دریافت این قدرت <i class="fas fa-bolt"></i></a>
+            </div>
+        `;
+    } catch (error) {
+        modalBody.innerHTML = '<div style="text-align:center; padding:50px;">خطا در بارگذاری اطلاعات. لطفاً دوباره تلاش کنید.</div>';
+    }
+}
+
+function closeModal() {
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+if (closeBtn) closeBtn.onclick = closeModal;
+window.onclick = (event) => {
+    if (event.target == modal) closeModal();
 }
 
 // Fetch and display articles from Database
