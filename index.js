@@ -1,9 +1,43 @@
+const POCKETBASE_URL = 'https://wearing-extension-strengthening-cancellation.trycloudflare.com';
+
 // Register Service Worker for PWA
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js')
         .then(reg => console.log('Service Worker registered', reg))
         .catch(err => console.log('Service Worker not registered', err));
 }
+
+// Fetch and display articles from Database
+async function loadArticles() {
+    const articlesList = document.querySelector('.articles-list');
+    try {
+        const response = await fetch(`${POCKETBASE_URL}/api/collections/articles/records?sort=-created`);
+        const data = await response.json();
+
+        if (data.items && data.items.length > 0) {
+            articlesList.innerHTML = ''; // Clear static ones
+            data.items.forEach(article => {
+                const date = new Date(article.created).toLocaleDateString('fa-IR');
+                const articleHtml = `
+                    <article class="article-item glass">
+                        <div>
+                            <h4>${article.title}</h4>
+                            <span class="date">${date} | ${article.category || 'تکنولوژی'}</span>
+                        </div>
+                        <a href="#" class="read-more">مطالعه مقاله <i class="fas fa-arrow-left"></i></a>
+                    </article>
+                `;
+                articlesList.insertAdjacentHTML('beforeend', articleHtml);
+            });
+            // Re-apply observer for new dynamic items
+            document.querySelectorAll('.article-item').forEach(el => observer.observe(el));
+        }
+    } catch (error) {
+        console.log('Error loading articles:', error);
+    }
+}
+
+loadArticles();
 
 // Smooth scroll for nav links
 document.querySelectorAll('.nav-links a').forEach(anchor => {
@@ -16,22 +50,39 @@ document.querySelectorAll('.nav-links a').forEach(anchor => {
     });
 });
 
-// Simple contact form handler
+// Real-time contact form handler with Database
 const contactForm = document.getElementById('contact-form');
 const formMsg = document.getElementById('form-msg');
 
 if (contactForm) {
-    contactForm.addEventListener('submit', function (e) {
+    contactForm.addEventListener('submit', async function (e) {
         e.preventDefault();
 
-        // Simulating sending
-        formMsg.innerHTML = 'در حال ارسال پیام...';
+        const formData = {
+            name: contactForm.querySelector('input[type="text"]').value,
+            email: contactForm.querySelector('input[type="email"]').value,
+            text: contactForm.querySelector('textarea').value
+        };
+
+        formMsg.innerHTML = 'در حال ارسال پیام به دیتابیس...';
         formMsg.style.color = 'var(--primary-color)';
 
-        setTimeout(() => {
-            formMsg.innerHTML = 'پیام شما با موفقیت ارسال شد. به زودی با شما تماس می‌گیرم.';
-            contactForm.reset();
-        }, 2000);
+        try {
+            const response = await fetch(`${POCKETBASE_URL}/api/collections/messages/records`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                formMsg.innerHTML = 'پیام شما در دیتابیس ثبت شد. به زودی با شما تماس می‌گیرم.';
+                contactForm.reset();
+            } else {
+                formMsg.innerHTML = 'خطا در ثبت پیام. لطفا دوباره تلاش کنید.';
+            }
+        } catch (error) {
+            formMsg.innerHTML = 'متاسفانه ارتباط با سرور برقرار نشد.';
+        }
     });
 }
 
