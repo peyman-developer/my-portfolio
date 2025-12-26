@@ -109,6 +109,20 @@ async function loadArticles() {
     }
 }
 
+// Reveal animations on scroll
+const observerOptions = {
+    threshold: 0.1
+};
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+        }
+    });
+}, observerOptions);
+
 loadArticles();
 loadServices();
 
@@ -159,19 +173,6 @@ if (contactForm) {
     });
 }
 
-// Reveal animations on scroll
-const observerOptions = {
-    threshold: 0.1
-};
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-        }
-    });
-}, observerOptions);
 
 document.querySelectorAll('.card, .article-item').forEach(el => {
     el.style.opacity = '0';
