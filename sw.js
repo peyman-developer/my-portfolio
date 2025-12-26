@@ -1,4 +1,4 @@
-const CACHE_NAME = 'peyman-ai-v1';
+const CACHE_NAME = 'peyman-portfolio-v2';
 const assets = [
     './',
     './index.html',

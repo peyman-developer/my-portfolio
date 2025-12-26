@@ -7,6 +7,39 @@ if ('serviceWorker' in navigator) {
         .catch(err => console.log('Service Worker not registered', err));
 }
 
+// Fetch and display services from Database
+async function loadServices() {
+    const servicesContainer = document.getElementById('services-container');
+    try {
+        const response = await fetch(`${POCKETBASE_URL}/api/collections/services/records?sort=created`);
+        const data = await response.json();
+
+        if (data.items && data.items.length > 0) {
+            servicesContainer.innerHTML = '';
+            data.items.forEach(service => {
+                const imgUrl = service.image
+                    ? `${POCKETBASE_URL}/api/files/${service.collectionId}/${service.id}/${service.image}`
+                    : 'assets/logo.png'; // Fallback
+
+                const serviceHtml = `
+                    <div class="card glass">
+                        <div class="card-img">
+                            <img src="${imgUrl}" alt="${service.title}">
+                        </div>
+                        <h3>${service.title}</h3>
+                        <p>${service.description}</p>
+                    </div>
+                `;
+                servicesContainer.insertAdjacentHTML('beforeend', serviceHtml);
+            });
+            // Re-apply observer for new items
+            document.querySelectorAll('.card').forEach(el => observer.observe(el));
+        }
+    } catch (error) {
+        console.log('Error loading services:', error);
+    }
+}
+
 // Fetch and display articles from Database
 async function loadArticles() {
     const articlesList = document.querySelector('.articles-list');
@@ -38,6 +71,7 @@ async function loadArticles() {
 }
 
 loadArticles();
+loadServices();
 
 // Smooth scroll for nav links
 document.querySelectorAll('.nav-links a').forEach(anchor => {
